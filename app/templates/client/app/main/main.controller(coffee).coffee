@@ -1,22 +1,27 @@
 'use strict'
 
-angular.module '<%= scriptAppName %>'
-.controller 'MainCtrl', ($scope, $http<% if (filters.socketio) { %>, socket<% } %>) ->
-  $scope.awesomeThings = []
-
-  $http.get('/api/things').then (response) ->
-    $scope.awesomeThings = response.data
-    <% if (filters.socketio) { %>socket.syncUpdates 'thing', $scope.awesomeThings<% } %>
+MainController = ($scope, $http<% if (filters.socketio) { %>, socket<% } %>) ->
+  @awesomeThings = []
+  $http.get('/api/things').then (response) =>
+    this.awesomeThings = response.data<% if (filters.socketio) { %>
+    socket.syncUpdates 'thing', this.awesomeThings<% } %>
+    return
 <% if (filters.models) { %>
-  $scope.addThing = ->
-    return if $scope.newThing is ''
-    $http.post '/api/things',
-      name: $scope.newThing
+  @addThing = =>
+    if this.newThing == ''
+      return
+    $http.post '/api/things', name: this.newThing
+    this.newThing = ''
+    return
 
-    $scope.newThing = ''
-
-  $scope.deleteThing = (thing) ->
-    $http.delete '/api/things/' + thing._id<% } %><% if (filters.socketio) { %>
+  @deleteThing = (thing) ->
+    $http.delete '/api/things/' + thing._id
+    return<% } %><% if (filters.socketio) { %>
 
   $scope.$on '$destroy', ->
-    socket.unsyncUpdates 'thing'<% } %>
+    socket.unsyncUpdates 'thing'
+    return<% } %>
+  return this
+
+angular.module '<%= scriptAppName %>'
+.controller 'MainController', MainController
